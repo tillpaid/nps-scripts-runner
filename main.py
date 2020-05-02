@@ -1,4 +1,7 @@
 from runner import Runner
+from store import Store
 
-runner = Runner()
+store = Store()
+
+runner = Runner(store)
 runner.run()

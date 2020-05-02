@@ -2,20 +2,24 @@ import os
 import json
 import curses
 
+
 class Runner:
-    def __init__(self):
+    def __init__(self, store):
         os.system('clear')
+
+        self.store = store
+        self.npmType = store.getNpmType()
 
         self.pointer = 2
         self.config = None
         self.scripts = [
             {
-                'name': 'npm install',
-                'command': 'npm install'
+                'name': "npm install",
+                'command': "{} install".format(self.npmType)
             },
             {
-                'name': 'npm install with remove',
-                'command': 'rm -rf node_modules ; npm install'
+                'name': "npm install with remove",
+                'command': "rm -rf node_modules ; {} install".format(self.npmType)
             }
         ]
 
@@ -68,7 +72,7 @@ class Runner:
 
         packageJsonExists = os.path.exists(packageJsonFile)
 
-        if (packageJsonExists):
+        if packageJsonExists:
             try:
                 file = open(packageJsonFile, 'r')
                 config = json.loads(file.read())
@@ -125,11 +129,8 @@ class Runner:
             self.pointer = len(self.scripts) - 1
 
     def runCommand(self):
-        command = ''
-
         if self.pointer > 1:
-            command += 'npm run '
-            command += self.scripts[self.pointer]['name']
+            command = "{} run {}".format(self.npmType, self.scripts[self.pointer]['name'])
         else:
             command = self.scripts[self.pointer]['command']
 
