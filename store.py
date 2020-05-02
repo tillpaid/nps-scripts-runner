@@ -21,6 +21,10 @@ class Store:
 
         return self.config['type']
 
+    def changeNpmType(self, type):
+        self.config['type'] = type
+        self.setConfig(self.config)
+
     def getConfig(self):
         if not self.checkFile():
             self.setConfig(self.defaultConfig)

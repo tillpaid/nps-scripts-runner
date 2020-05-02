@@ -8,18 +8,18 @@ class Runner:
         os.system('clear')
 
         self.store = store
-        self.npmType = store.getNpmType()
+        self.npmType = None
 
         self.pointer = 2
         self.config = None
         self.scripts = [
             {
                 'name': "npm install",
-                'command': "{} install".format(self.npmType)
+                'command': "{} install"
             },
             {
                 'name': "npm install with remove",
-                'command': "rm -rf node_modules ; {} install".format(self.npmType)
+                'command': "rm -rf node_modules ; {} install"
             }
         ]
 
@@ -35,7 +35,11 @@ class Runner:
         curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_GREEN, -1)
 
+    def loadConfig(self):
+        self.npmType = self.store.getNpmType()
+
     def run(self):
+        self.loadConfig()
         self.getPackageJson()
         self.parseScripts()
         self.setBorders()
@@ -48,7 +52,8 @@ class Runner:
             'q': ord('q'),
             'esc': 27,
             'space': 32,
-            'return': 10
+            'return': 10,
+            't': ord('t')
         }
 
         while True:
@@ -65,6 +70,8 @@ class Runner:
                 self.minusPointer()
             elif char == keys['down'] or char == keys['j']:
                 self.plusPointer()
+            elif char == keys['t']:
+                self.changeNpmType()
 
     def getPackageJson(self):
         currentDir = os.getcwd()
@@ -132,7 +139,7 @@ class Runner:
         if self.pointer > 1:
             command = "{} run {}".format(self.npmType, self.scripts[self.pointer]['name'])
         else:
-            command = self.scripts[self.pointer]['command']
+            command = self.scripts[self.pointer]['command'].format(self.npmType)
 
         self.quitCurses()
 
@@ -142,7 +149,7 @@ class Runner:
         quit()
 
     def printScripts(self):
-        self.screen.addnstr('', 0)
+        self.screen.clear()
         self.screen.addstr(0, 0, self.outBorder)
 
         counter = 1
@@ -165,6 +172,27 @@ class Runner:
             counter += 1
 
         self.screen.addstr(counter, 0, self.outBorder)
+
+    def changeNpmType(self):
+        self.screen.clear()
+        self.screen.addstr(0, 0, self.outBorder)
+
+        message = "Type not changed!"
+        changeTo = 'yarn' if self.npmType == 'npm' else 'npm'
+
+        self.screen.addstr(1, 0, "Change {} to {}. (y/n):".format(self.npmType, changeTo))
+        char = self.screen.getch()
+        self.screen.clear()
+        self.screen.addstr(0, 0, self.outBorder)
+
+        if char == ord('y'):
+            self.store.changeNpmType(changeTo)
+            self.loadConfig()
+            message = "Changed success!"
+
+        self.screen.addstr(1, 0, message)
+        self.screen.addstr(2, 0, "Press any key...")
+        self.screen.getch()
 
     def quitCurses(self):
         self.screen.keypad(False)
