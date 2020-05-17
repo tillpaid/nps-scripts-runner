@@ -14,14 +14,20 @@ class Runner:
         self.config = None
         self.scripts = [
             {
-                'name': "npm install",
-                'command': "{} install"
-            },
-            {
                 'name': "npm install with remove",
                 'command': "rm -rf node_modules ; {} install"
+            },
+            {
+                'name': "npm install",
+                'command': "{} install"
             }
         ]
+
+        self.nodeModulesInstalled = False
+
+        self.nodeModulesText = ""
+        self.nodeModulesTextBefore = ""
+        self.nodeModulesTextAfter = ""
 
         self.maxScriptLength = None
         self.outBorder = None
@@ -34,6 +40,7 @@ class Runner:
         curses.start_color()
         curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_GREEN, -1)
+        curses.init_pair(2, curses.COLOR_RED, -1)
 
     def loadConfig(self):
         self.npmType = self.store.getNpmType()
@@ -76,8 +83,11 @@ class Runner:
     def getPackageJson(self):
         currentDir = os.getcwd()
         packageJsonFile = currentDir + '/package.json'
+        nodeModulesDir = currentDir + '/node_modules'
 
         packageJsonExists = os.path.exists(packageJsonFile)
+        self.nodeModulesInstalled = os.path.exists(nodeModulesDir)
+        self.pointer = 2 if self.nodeModulesInstalled else 1
 
         if packageJsonExists:
             try:
@@ -123,17 +133,23 @@ class Runner:
         self.inBorder = "+{}+".format('-' * self.maxScriptLength)
         self.outBorder = "+{}+".format('=' * self.maxScriptLength)
 
-    def plusPointer(self):
-        self.pointer += 1
+        self.nodeModulesText = "Node modules installed" if self.nodeModulesInstalled else "Node modules not installed"
+        self.nodeModulesTextBefore = "| "
+        self.nodeModulesTextAfter = "{} |".format((self.maxScriptLength - len(self.nodeModulesText) - 2) * ' ')
 
-        if self.pointer >= len(self.scripts):
-            self.pointer = 2
+    def plusPointer(self):
+        if self.nodeModulesInstalled:
+            self.pointer += 1
+
+            if self.pointer >= len(self.scripts):
+                self.pointer = 2
 
     def minusPointer(self):
-        self.pointer -= 1
+        if self.nodeModulesInstalled:
+            self.pointer -= 1
 
-        if self.pointer < 0:
-            self.pointer = len(self.scripts) - 1
+            if self.pointer < 0:
+                self.pointer = len(self.scripts) - 1
 
     def runCommand(self):
         if self.pointer > 1:
@@ -153,6 +169,14 @@ class Runner:
         self.screen.addstr(0, 0, self.outBorder)
 
         counter = 1
+
+        self.screen.addstr(counter, 0, self.nodeModulesTextBefore)
+        self.screen.addstr(self.nodeModulesText, curses.color_pair(1 if self.nodeModulesInstalled else 2))
+        self.screen.addstr(self.nodeModulesTextAfter)
+        counter += 1
+
+        self.screen.addstr(counter, 0, self.outBorder)
+        counter += 1
 
         for i in range(len(self.scripts)):
             rowActive = self.pointer == i
