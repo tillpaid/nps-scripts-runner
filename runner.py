@@ -10,9 +10,13 @@ class Runner:
         self.store = store
         self.npmType = None
 
-        self.pointer = 2
+        self.pointer = 3
         self.config = None
         self.scripts = [
+            {
+                'name': "remove node_modules dir",
+                'command': "rm -rf node_modules"
+            },
             {
                 'name': "npm install with remove",
                 'command': "rm -rf node_modules ; {} install"
@@ -87,7 +91,7 @@ class Runner:
 
         packageJsonExists = os.path.exists(packageJsonFile)
         self.nodeModulesInstalled = os.path.exists(nodeModulesDir)
-        self.pointer = 2 if self.nodeModulesInstalled else 1
+        self.pointer = 3 if self.nodeModulesInstalled else 2
 
         if packageJsonExists:
             try:
@@ -142,7 +146,7 @@ class Runner:
             self.pointer += 1
 
             if self.pointer >= len(self.scripts):
-                self.pointer = 2
+                self.pointer = 3
 
     def minusPointer(self):
         if self.nodeModulesInstalled:
@@ -152,7 +156,7 @@ class Runner:
                 self.pointer = len(self.scripts) - 1
 
     def runCommand(self):
-        if self.pointer > 1:
+        if self.pointer > 2:
             command = "{} run {}".format(self.npmType, self.scripts[self.pointer]['name'])
         else:
             command = self.scripts[self.pointer]['command'].format(self.npmType)
@@ -185,7 +189,11 @@ class Runner:
             arrow = '| ---> | ' if rowActive else '|      | '
             afterName = "{} |".format(" " * (self.maxScriptLength - len(name) - 9))
 
-            if i == 2:
+            if i == 1:
+                self.screen.addstr(counter, 0, self.inBorder)
+                counter += 1
+
+            if i == 3:
                 self.screen.addstr(counter, 0, self.inBorder)
                 counter += 1
 
