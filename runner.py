@@ -12,17 +12,21 @@ class Runner:
 
         self.pointer = 3
         self.config = None
+        self.scriptsText = {
+            'installWithRemove': 'install with remove',
+            'install': 'install'
+        }
         self.scripts = [
             {
                 'name': "remove node_modules dir",
                 'command': "rm -rf node_modules"
             },
             {
-                'name': "npm install with remove",
+                'name': "install with remove",
                 'command': "rm -rf node_modules ; {} install"
             },
             {
-                'name': "npm install",
+                'name': "install",
                 'command': "{} install"
             }
         ]
@@ -124,6 +128,9 @@ class Runner:
             quit()
 
     def setBorders(self):
+        self.scripts[1]['name'] = "{} {}".format(self.npmType, self.scriptsText['installWithRemove'])
+        self.scripts[2]['name'] = "{} {}".format(self.npmType, self.scriptsText['install'])
+
         self.maxScriptLength = 0
 
         for i in range(len(self.scripts)):
@@ -220,6 +227,7 @@ class Runner:
         if char == ord('y'):
             self.store.changeNpmType(changeTo)
             self.loadConfig()
+            self.setBorders()
             message = "Changed success!"
 
         self.screen.addstr(1, 0, message)
